@@ -60,7 +60,7 @@ public:
 				// std::cerr << "noise=" << noise << std::endl;
 				// const double noise = 0.4;
 
-				for (int k = 0; H * z + k < int(noise*5); k++) {
+				for (int k = 0; H * z + k <= int(noise*5); k++) {
 					cubearray[i][j][k] = STONE;
 				}
 			}
@@ -77,6 +77,7 @@ public:
 	std::map<Pos, Block*> wMap;
 	Pos centerBlockPos = {-123, 123, -123};
 	WorldMap(){ }
+	~WorldMap();
 	void eraseBlock(const Pos& blockPos);
 	void addBlock(const Pos& blockPos);
 	void update(const Pos& nowblockpos);
@@ -85,3 +86,5 @@ public:
 	CUBE& getCubeAt(Pos p);
 	std::pair<Pos, Pos> getPointingCube(glm::vec3 position, glm::vec3 front, double radius);
 };
+
+Pos transWorldposToMappos(glm::vec3);

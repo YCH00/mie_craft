@@ -1,8 +1,22 @@
 #include"mine/worldMap.h"
+#include <iostream>
+
+std::ostream& operator<<(std::ostream& out, const Pos& p)
+{
+    out << p.x << "," << p.y << "," << p.z;
+    return out;
+}
+
+WorldMap::~WorldMap()
+{
+    for (auto [pos, block] : wMap)
+    {
+        eraseBlock(pos);
+    }
+}
 
 void WorldMap::eraseBlock(const Pos& blockPos)
 {
-    // std::cerr << "close: " << blockPos.x << " " << blockPos.y << " " << blockPos.z << std::endl;
     std::ofstream fout("save/worldmap/worldmap_" + std::to_string(blockPos.x) + "_" + std::to_string(blockPos.y) + "_" + std::to_string(blockPos.z) + ".worldmap");
     Block *block = wMap[blockPos];
     for (int i = 0; i < W; i++)
@@ -251,5 +265,24 @@ std::pair<Pos, Pos> WorldMap::getPointingCube(glm::vec3 position, glm::vec3 fron
         }
         assert(1);//按道理来说上面六种总会有一个符合的，不应该走到这里
     }
+    return ans;
+}
+
+Pos transWorldposToMappos(glm::vec3 p)
+{
+    Pos ans;
+    if(p.x >= 0)
+        ans.x = p.x;
+    else
+        ans.x = p.x - 1;
+    if(p.y >= 0)
+        ans.y = p.y;
+    else
+        ans.y = p.y - 1;
+    if(p.z >= 0)
+        ans.z = p.z;
+    else
+        ans.z = p.z - 1;
+    std::swap(ans.y, ans.z);
     return ans;
 }

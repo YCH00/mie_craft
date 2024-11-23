@@ -22,8 +22,8 @@ glm::mat4 transform(1.0);
 
 PerspectiveCamera* camera = nullptr;
 GameCameraControl* cameraControl = nullptr;
-WorldMap* myWorldMap = nullptr;
-
+extern WorldMap* myWorldMap = nullptr;
+extern bool escape = false;
 
 Geometry* skyboxVao = nullptr;
 Geometry* boxVao = nullptr;
@@ -149,6 +149,7 @@ void prepareState(void)
 void prepareWorldMap(void)
 {
     myWorldMap = new WorldMap();
+    myWorldMap->update(myWorldMap->calculateBlockPos(transWorldposToMappos(camera->getViewPos())));
 }
 
 void prepareLightControl()
@@ -311,7 +312,21 @@ void render(void)
     if(cameraControl->getRightMouseDown() && !right_mouse_down){
         right_mouse_down = true;
         if(myWorldMap->getCubeAt(pos1) != AIR)
+        {
             myWorldMap->getCubeAt(pos2) = STONE;
+            //直接暴力判断一下当前是否发生碰撞（穿模），如果是的话就不放
+            if(myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+                myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
+                myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+                myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
+                myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+                myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
+                myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+                myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR)
+            {
+                myWorldMap->getCubeAt(pos2) = AIR;
+            }
+        }
     }
     else{
         right_mouse_down = false;
@@ -358,7 +373,7 @@ int main()
         // 每秒更新一次帧率
         if (currentTime - previousTime >= 1.0) {
             double fps = frameCount / (currentTime - previousTime);
-            std::cout << "FPS: " << fps << std::endl;
+            // std::cout << "FPS: " << fps << std::endl;
             // 更新窗口标题
             std::string title = "OpenGL FPS: " + std::to_string(fps);
             glfwSetWindowTitle(Application::getInstance()->getWindow(), title.c_str());
@@ -370,9 +385,12 @@ int main()
         cameraControl->update();
         //渲染操作
         render();
+        if(escape)
+            break;
     }
 
     //4，退出程序前做相关清理
+    delete myWorldMap;
     Application::getInstance() -> destory();
 
     return 0;

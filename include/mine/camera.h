@@ -1,6 +1,14 @@
 #pragma once
 
 #include"core.h"
+#include "worldMap.h"
+
+// #define CREATER_MOD
+
+const double PLAYER_HEIGHT = 1.9;
+const double PLAYER_RADIU = 0.4;
+const double PLAYER_EYE_HEIGHT = 1.5;
+const double EPS = 0.05;
 
 class Camera {
 public:
@@ -14,7 +22,7 @@ public:
     glm::vec3 getFront() { return glm::cross(mUp,mRight); }
 
 public:
-    glm::vec3 mPosition {0.0f,50.0f,0.0f};  //摄像机的当前位置
+    glm::vec3 mPosition {0.0f,20.0f,0.0f};  //摄像机的当前位置
     glm::vec3 mUp {0.0f,1.0f,0.0f};  //摄像机头朝向的方向  //可以代替穹顶方向传入glm::lookat()函数
     glm::vec3 mRight {1.0f,0.0f,0.0f};  //摄像机正右侧的方向
 };
@@ -61,7 +69,10 @@ protected:
     float mSensitivity = 0.1f;  //灵敏度，鼠标移动距离=>旋转角 的比值
     Camera* mCamera = nullptr;  //控制的摄像机
 
-
+    bool onGround = 0;
+    const float g = 0.2; //重力加速度
+    glm::vec3 ySpeed = glm::vec3(0.0f);//玩家y方向的速度
+    const float ySpeedmax = 1.8;
 };
 
 class GameCameraControl : public CameraControl {
@@ -80,7 +91,7 @@ private:
 
 private:
     float mPitch {0.0f};  //记录pitch的角度，保证总的pitch角度在-90~+90之间
-    float mSpeed {1.0f};  //相机运动的速度
+    float mSpeed {0.3f};  //相机运动的速度
 };
 
 

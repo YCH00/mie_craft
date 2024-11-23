@@ -26,5 +26,4 @@ src/*.o
 # 忽略生成的exe
 output/*.exe
 
-# 忽略清除中间文件的脚本
-clear.bat
+save/worldmap/*.*

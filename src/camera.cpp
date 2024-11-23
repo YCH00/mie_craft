@@ -1,7 +1,9 @@
 #include "mine/camera.h"
+#include "mine/worldMap.h"
 #include <iostream>
 
-
+extern WorldMap *myWorldMap;
+extern bool escape;
 
 Camera::Camera()  //后序可以加入初始设置参数
 {
@@ -181,20 +183,112 @@ void GameCameraControl::update()
         direction += glm::vec3(right.x,0.0f,right.z);
     }
 
-    glm::vec3 jump(0.0f);
     if(mKeyMap[GLFW_KEY_SPACE]){
-        jump += glm::vec3(0.0f,1.0f,0.0f);
+#ifdef CREATER_MOD
+        ySpeed = glm::vec3(0.0f,1.0f,0.0f);
+#else
+        if(onGround)
+            ySpeed = glm::vec3(0.0f, 0.7f, 0.0f), onGround = 0;
+#endif
         // std::cout<< "space pressed;" << std::endl;
     }
     if(mKeyMap[GLFW_KEY_LEFT_CONTROL]){
-        jump -= glm::vec3(0.0f,1.0f,0.0f);
+#ifdef CREATER_MOD
+        ySpeed = -glm::vec3(0.0f,1.0f,0.0f);
+#else
+#endif
         // std::cout<< "left ctrl pressed;" << std::endl;
+    }
+    if(mKeyMap[GLFW_KEY_ESCAPE]){
+        escape = true;
+    }
+
+    //认为玩家是一个1*1*2的正方体，而且这个正方体是不会旋转的，所以进行碰撞检测的时候可以使用正方体的顶点来判断
+    /**
+     * update
+     * 其实发现逻辑很简单：三个方向依次独立判断即可，每次判断都是那8个点，不知道为什么没有出现预想中的一些棘手情况，但……反正实现了
+     */
+    glm::vec3 newpos = mCamera->mPosition + ySpeed + glm::vec3(0.0f, -EPS, 0.0f);
+    //首先实现一个飞行模式的碰撞检测
+    if(myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR)
+    {
+        newpos.y = mCamera->mPosition.y;
+        mCamera->mPosition = newpos;
+    } 
+    if( myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR)
+    {
+        while (!(myWorldMap->getCubeAt(transWorldposToMappos(mCamera->mPosition + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT - 1, -PLAYER_RADIU / 2))) != AIR || 
+                myWorldMap->getCubeAt(transWorldposToMappos(mCamera->mPosition + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT - 1, PLAYER_RADIU / 2))) != AIR || 
+                myWorldMap->getCubeAt(transWorldposToMappos(mCamera->mPosition + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT - 1, -PLAYER_RADIU / 2))) != AIR || 
+                myWorldMap->getCubeAt(transWorldposToMappos(mCamera->mPosition + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT - 1, PLAYER_RADIU / 2))) != AIR))
+        {
+            mCamera->mPosition.y -= 1;
+        }
+        mCamera->mPosition.y = floor(mCamera->mPosition.y - PLAYER_EYE_HEIGHT) + PLAYER_EYE_HEIGHT + EPS / 2;
+        // newpos.y = mCamera->mPosition.y;
+#ifndef CREATER_MOD//我累个大草啊试了试还能这么写的吗
+        onGround = 1;
+
+    }
+    else
+    {
+        mCamera->mPosition = newpos;
+        onGround = 0;
+#endif
     }
 
     //将速度归一
     if(glm::length(direction)!=0){
         direction = glm::normalize(direction);
     }
-    mCamera->mPosition += direction * mSpeed;
-    mCamera->mPosition += jump;
+
+    glm::vec3 plus = direction * mSpeed;
+    //x方向
+    newpos = mCamera->mPosition + glm::vec3(plus.x, 0, 0);
+    //会发现依然是这八个点，不用变
+    if(myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR)
+    {
+        newpos.x = mCamera->mPosition.x;
+    }
+    mCamera->mPosition = newpos;
+
+    //z方向
+    newpos = mCamera->mPosition + glm::vec3(0, 0, plus.z);
+    if(myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR)
+    {
+        newpos.z = mCamera->mPosition.z;
+    }
+    mCamera->mPosition = newpos;
+
+#ifndef CREATER_MOD
+    if(onGround)
+    {
+        ySpeed = glm::vec3(0.0f);
+    }
+    else
+    {
+        ySpeed -= glm::vec3(0.0f, g, 0.0f);
+        ySpeed.y = std::max(ySpeed.y, -ySpeedmax);
+    }
+#endif
 }
