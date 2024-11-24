@@ -50,6 +50,8 @@ void WorldMap::addBlock(const Pos& blockPos)
                     int x;
                     fin >> x;
                     block->cubearray[i][j][k] = (CUBE)x;
+                    //每次都重算，就不写了
+                    block->model[i][j][k] = glm::translate(glm::mat4(1.0f), glm::vec3(i + (blockPos.x * W), k + (blockPos.z * H), j + (blockPos.y * L)));
                 }
             }
         }

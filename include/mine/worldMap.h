@@ -63,6 +63,10 @@ public:
 				for (int k = 0; H * z + k <= int(noise*5); k++) {
 					cubearray[i][j][k] = STONE;
 				}
+				for (int k = 0; k < H; k++)
+				{
+					model[i][j][k] = glm::translate(glm::mat4(1.0f), glm::vec3(i + (pos.x * W), k + (pos.z * H), j + (pos.y * L)));
+				}
 			}
 		}
 	}
@@ -70,6 +74,7 @@ public:
 
 
 	CUBE cubearray[W][L][H] = {};
+	glm::mat4 model[W][L][H];
 };
 
 class WorldMap {

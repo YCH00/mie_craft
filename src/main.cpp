@@ -12,6 +12,8 @@
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+extern double FPS = 30;
+
 Shader* lightingShader = nullptr;
 Shader* skyboxShader = nullptr;
 
@@ -248,39 +250,50 @@ void render(void)
     nowpos.z = camera->getViewPos().y;
     Pos blockpos = myWorldMap->calculateBlockPos(nowpos);
     myWorldMap->update(blockpos);
-
+    CUBE tmp_cube = AIR;
 
     for (auto &[blockPos, block] : myWorldMap->wMap){
         if(blockPos.z != 0)
             continue;
+        for (int k = 0; k < H; k++) {
         for (int i = 0; i < W; i++) {
         for (int j = 0; j < L; j++) {
-        for (int k = 0; k < H; k++) {
-            if (block->cubearray[i][j][k] != 0) {
-                glm::mat4 model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(blockPos.x * W + i, blockPos.z * H + k, blockPos.y * L + j));
-                lightingShader->setMat4("transform", model);
 
-                if(block->cubearray[i][j][k] != AIR && block->cubearray[i][j][k] < NULLCUBE){
-                    boxTextures[block->cubearray[i][j][k]]->bind();
+            if(block->cubearray[i][j][k] != AIR && block->cubearray[i][j][k] < NULLCUBE){
+                bool z1 = ((j == 0     || block->cubearray[i][j - 1][k] == AIR) && camera->getViewPos().z <= blockPos.y * L + j);
+                bool z2 = ((j == L - 1 || block->cubearray[i][j + 1][k] == AIR) && camera->getViewPos().z >= blockPos.y * L + j +1);
+                bool x1 = ((i == 0     || block->cubearray[i - 1][j][k] == AIR) && camera->getViewPos().x <= blockPos.x * W + i);
+                bool x2 = ((i == W - 1 || block->cubearray[i + 1][j][k] == AIR) && camera->getViewPos().x >= blockPos.x * W + i +1);
+                bool y1 = ((k != 0     && block->cubearray[i][j][k - 1] == AIR) && camera->getViewPos().y <= blockPos.z * H + k); //这里稍微改了一下，地底是可以不渲染的
+                bool y2 = ((k == H - 1 || block->cubearray[i][j][k + 1] == AIR) && camera->getViewPos().y >= blockPos.z * H + k +1);
+                if(!(z1 || z2 || x1 || x2 || y1 || y2))
+                    continue;
+                // model = glm::translate(model, glm::vec3(blockPos.x * W + i, blockPos.z * H + k, blockPos.y * L + j));
+                // glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(i + (blockPos.x * W), k + (blockPos.z * H), j + (blockPos.y * L)));
+                lightingShader->setMat4("transform", block->model[i][j][k]);
+
+                boxTextures[block->cubearray[i][j][k]]->bind();
+                if(tmp_cube != block->cubearray[i][j][k]){
+                    tmp_cube = block->cubearray[i][j][k];
                     lightingShader->setInt("material.cubeTexture",(int)(block->cubearray[i][j][k]));
-                    // std::cout<< (int)(block->cubearray[i][j][k]) <<std::endl;
-                    //每个方块的6个面并不需要全部绘制
-                    //原理是判断这个面是否被其他方块遮挡，没遮挡的话再绘制
-                    if ((j == 0     || block->cubearray[i][j - 1][k] == 0) && camera->getViewPos().z <= blockPos.y * L + j) // -z  
-                        glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,(void*)(0*sizeof(unsigned int)));
-                    if ((j == L - 1 || block->cubearray[i][j + 1][k] == 0) && camera->getViewPos().z >= blockPos.y * L + j +1)  // +z  
-                        glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,(void*)(6*sizeof(unsigned int)));
-                    if ((i == 0     || block->cubearray[i - 1][j][k] == 0) && camera->getViewPos().x <= blockPos.x * W + i)  // -x  
-                        glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,(void*)(24*sizeof(unsigned int)));
-                    if ((i == W - 1 || block->cubearray[i + 1][j][k] == 0) && camera->getViewPos().x >= blockPos.x * W + i +1)  // +x  
-                        glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,(void*)(30*sizeof(unsigned int)));
-                    if ((k == 0     || block->cubearray[i][j][k - 1] == 0) && camera->getViewPos().y <= blockPos.z * H + k)  // -y  
-                        glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,(void*)(12*sizeof(unsigned int)));
-                    if ((k == H - 1 || block->cubearray[i][j][k + 1] == 0) && camera->getViewPos().y >= blockPos.z * H + k +1)  // +y  
-                        glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,(void*)(18*sizeof(unsigned int)));
                 }
+                // std::cout<< (int)(block->cubearray[i][j][k]) <<std::endl;
+                //每个方块的6个面并不需要全部绘制
+                //原理是判断这个面是否被其他方块遮挡，没遮挡的话再绘制
+                if (z1) // -z  
+                    glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,(void*)(0*sizeof(unsigned int)));
+                if (z2)  // +z  
+                    glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,(void*)(6*sizeof(unsigned int)));
+                if (x1)  // -x  
+                    glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,(void*)(24*sizeof(unsigned int)));
+                if (x2)  // +x  
+                    glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,(void*)(30*sizeof(unsigned int)));
+                if (y1)  // -y  
+                    glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,(void*)(12*sizeof(unsigned int)));
+                if (y2)  // +y  
+                    glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,(void*)(18*sizeof(unsigned int)));
             }
+            
         }}}
     }
     auto [pos1, pos2] = myWorldMap->getPointingCube(camera->getViewPos(), camera->getFront(), 10.0);
@@ -300,31 +313,37 @@ void render(void)
     }
 
     // 处理方块放置和消除
-    if(cameraControl->getLeftMouseDown() && !left_mouse_down){
-        left_mouse_down = true;
-        myWorldMap->getCubeAt(pos1) = AIR;
-        // std::cout<< "left mouse down"<<std::endl;
+    if(cameraControl->getLeftMouseDown()){
+        if(!left_mouse_down)
+        {
+            left_mouse_down = true;
+            myWorldMap->getCubeAt(pos1) = AIR;
+            // std::cout<< "left mouse down"<<std::endl;
+        }
     }
     else{
         // std::cout<< "left mouse up" <<std::endl;
         left_mouse_down = false;
     }
-    if(cameraControl->getRightMouseDown() && !right_mouse_down){
-        right_mouse_down = true;
-        if(myWorldMap->getCubeAt(pos1) != AIR)
+    if(cameraControl->getRightMouseDown()){
+        if(!right_mouse_down)
         {
-            myWorldMap->getCubeAt(pos2) = STONE;
-            //直接暴力判断一下当前是否发生碰撞（穿模），如果是的话就不放
-            if(myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
-                myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
-                myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
-                myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
-                myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
-                myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
-                myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
-                myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR)
+            right_mouse_down = true;
+            if(myWorldMap->getCubeAt(pos1) != AIR)
             {
-                myWorldMap->getCubeAt(pos2) = AIR;
+                myWorldMap->getCubeAt(pos2) = STONE;
+                //直接暴力判断一下当前是否发生碰撞（穿模），如果是的话就不放
+                if(myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+                    myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
+                    myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+                    myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
+                    myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+                    myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
+                    myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+                    myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR)
+                {
+                    myWorldMap->getCubeAt(pos2) = AIR;
+                }
             }
         }
     }
@@ -372,10 +391,10 @@ int main()
         frameCount++;
         // 每秒更新一次帧率
         if (currentTime - previousTime >= 1.0) {
-            double fps = frameCount / (currentTime - previousTime);
+            FPS = frameCount / (currentTime - previousTime);
             // std::cout << "FPS: " << fps << std::endl;
             // 更新窗口标题
-            std::string title = "OpenGL FPS: " + std::to_string(fps);
+            std::string title = "OpenGL FPS: " + std::to_string(FPS);
             glfwSetWindowTitle(Application::getInstance()->getWindow(), title.c_str());
             // 重置计数器
             previousTime = currentTime;

@@ -27,3 +27,4 @@ src/*.o
 output/*.exe
 
 save/worldmap/*.*
+*.txt

@@ -3,7 +3,7 @@
 #include"core.h"
 #include "worldMap.h"
 
-// #define CREATER_MOD
+//#define CREATER_MOD
 
 const double PLAYER_HEIGHT = 1.9;
 const double PLAYER_RADIU = 0.4;
@@ -70,9 +70,9 @@ protected:
     Camera* mCamera = nullptr;  //控制的摄像机
 
     bool onGround = 0;
-    const float g = 0.2; //重力加速度
-    glm::vec3 ySpeed = glm::vec3(0.0f);//玩家y方向的速度
-    const float ySpeedmax = 1.8;
+    const float g = 19.6; //重力加速度
+    float ySpeed = 0.0f;//玩家y方向的速度
+    const float ySpeedmax = 25;
 };
 
 class GameCameraControl : public CameraControl {
@@ -91,7 +91,7 @@ private:
 
 private:
     float mPitch {0.0f};  //记录pitch的角度，保证总的pitch角度在-90~+90之间
-    float mSpeed {0.3f};  //相机运动的速度
+    float mSpeed {3.0f};  //相机运动的速度
 };
 
 

@@ -4,6 +4,7 @@
 
 extern WorldMap *myWorldMap;
 extern bool escape;
+extern double FPS;
 
 Camera::Camera()  //后序可以加入初始设置参数
 {
@@ -185,40 +186,48 @@ void GameCameraControl::update()
 
     if(mKeyMap[GLFW_KEY_SPACE]){
 #ifdef CREATER_MOD
-        ySpeed = glm::vec3(0.0f,1.0f,0.0f);
+        ySpeed = 3.0;
 #else
         if(onGround)
-            ySpeed = glm::vec3(0.0f, 0.7f, 0.0f), onGround = 0;
+            ySpeed = 8.0, onGround = 0;
 #endif
         // std::cout<< "space pressed;" << std::endl;
     }
-    if(mKeyMap[GLFW_KEY_LEFT_CONTROL]){
+    else if(mKeyMap[GLFW_KEY_LEFT_CONTROL]){
 #ifdef CREATER_MOD
-        ySpeed = -glm::vec3(0.0f,1.0f,0.0f);
+        ySpeed = -3.0;
 #else
 #endif
         // std::cout<< "left ctrl pressed;" << std::endl;
+    }
+    else
+    {
+#ifdef CREATER_MOD
+        ySpeed = 0;
+#endif
     }
     if(mKeyMap[GLFW_KEY_ESCAPE]){
         escape = true;
     }
 
+#ifndef CREATER_MOD
     //认为玩家是一个1*1*2的正方体，而且这个正方体是不会旋转的，所以进行碰撞检测的时候可以使用正方体的顶点来判断
     /**
      * update
      * 其实发现逻辑很简单：三个方向依次独立判断即可，每次判断都是那8个点，不知道为什么没有出现预想中的一些棘手情况，但……反正实现了
      */
-    glm::vec3 newpos = mCamera->mPosition + ySpeed + glm::vec3(0.0f, -EPS, 0.0f);
-    //首先实现一个飞行模式的碰撞检测
+    //y
+    glm::vec3 newpos = mCamera->mPosition + glm::vec3(0.0f, ySpeed / FPS, 0.0f) + glm::vec3(0.0f, -EPS, 0.0f);
     if(myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
         myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
         myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
         myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR)
     {
+        ySpeed = 0;
         newpos.y = mCamera->mPosition.y;
         mCamera->mPosition = newpos;
     } 
-    if( myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+    else if( myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
         myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
         myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
         myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR)
@@ -230,9 +239,9 @@ void GameCameraControl::update()
         {
             mCamera->mPosition.y -= 1;
         }
+        ySpeed = 0;
         mCamera->mPosition.y = floor(mCamera->mPosition.y - PLAYER_EYE_HEIGHT) + PLAYER_EYE_HEIGHT + EPS / 2;
         // newpos.y = mCamera->mPosition.y;
-#ifndef CREATER_MOD//我累个大草啊试了试还能这么写的吗
         onGround = 1;
 
     }
@@ -240,7 +249,6 @@ void GameCameraControl::update()
     {
         mCamera->mPosition = newpos;
         onGround = 0;
-#endif
     }
 
     //将速度归一
@@ -250,8 +258,9 @@ void GameCameraControl::update()
 
     glm::vec3 plus = direction * mSpeed;
     //x方向
-    newpos = mCamera->mPosition + glm::vec3(plus.x, 0, 0);
+    newpos = mCamera->mPosition + glm::vec3(plus.x / FPS, 0, 0);
     //会发现依然是这八个点，不用变
+    //update：会发现只用这八个点会出现方块再这八个点中间然后卡进去的情况
     if(myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
         myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
         myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
@@ -259,14 +268,18 @@ void GameCameraControl::update()
         myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
         myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
         myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
-        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR)
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT / 2 - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT / 2 - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT / 2 - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT / 2 - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR)
     {
         newpos.x = mCamera->mPosition.x;
     }
     mCamera->mPosition = newpos;
 
     //z方向
-    newpos = mCamera->mPosition + glm::vec3(0, 0, plus.z);
+    newpos = mCamera->mPosition + glm::vec3(0, 0, plus.z / FPS);
     if(myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
         myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
         myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
@@ -274,21 +287,34 @@ void GameCameraControl::update()
         myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
         myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
         myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
-        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR)
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, -PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT / 2 - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT / 2 - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT / 2 - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
+        myWorldMap->getCubeAt(transWorldposToMappos(newpos + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT / 2 - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR)
     {
         newpos.z = mCamera->mPosition.z;
     }
     mCamera->mPosition = newpos;
 
-#ifndef CREATER_MOD
     if(onGround)
     {
-        ySpeed = glm::vec3(0.0f);
+        ySpeed = 0.0f;
     }
     else
     {
-        ySpeed -= glm::vec3(0.0f, g, 0.0f);
-        ySpeed.y = std::max(ySpeed.y, -ySpeedmax);
+        ySpeed -= g / FPS;
+        ySpeed = std::max(ySpeed, -ySpeedmax);
     }
+#else
+    mCamera->mPosition += glm::vec3(0.0f, ySpeed / FPS, 0.0f);
+
+    if(glm::length(direction)!=0){
+        direction = glm::normalize(direction);
+    }
+
+    glm::vec3 plus = direction * mSpeed;
+    plus.x /= FPS, plus.z /= FPS;
+    mCamera->mPosition += plus;
 #endif
 }
