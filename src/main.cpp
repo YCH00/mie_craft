@@ -9,8 +9,8 @@
 #include"mine/geometry.h"
 #include"mine/worldMap.h"
 #include"mine/lightControl.h"
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1920;
+const unsigned int SCR_HEIGHT = 1080;
 
 extern double FPS = 30;
 
@@ -32,20 +32,21 @@ Geometry* boxVao = nullptr;
 
 LightControl* lightControl = nullptr;
 
-//´°¿Ú´óĞ¡¸Ä±äÏìÓ¦º¯Êı
+
+//çª—å£å¤§å°æ”¹å˜å“åº”å‡½æ•°
 void OnResize(int width, int height)
 {
-    GL_CALL(glViewport(0,0,width,height));  // ¸Ä±äÊÓ¿ÚµÄ´óĞ¡
-    std::cout << "´°¿Ú×îĞÂ´óĞ¡£º" << width << "£¬ " << height << std::endl;
+    GL_CALL(glViewport(0,0,width,height));  // æ”¹å˜è§†å£çš„å¤§å°
+    std::cout << "çª—å£æœ€æ–°å¤§å°ï¼š" << width << "ï¼Œ " << height << std::endl;
 }
 
-//¼üÅÌÏûÏ¢ÏìÓ¦º¯Êı
+//é”®ç›˜æ¶ˆæ¯å“åº”å‡½æ•°
 void OnKey(int key, int action, int mods)
 {
     cameraControl->onKey(key,action,mods);
 }
 
-//Êó±ê°´ÏÂ/Ì§ÆğÏìÓ¦º¯Êı
+//é¼ æ ‡æŒ‰ä¸‹/æŠ¬èµ·å“åº”å‡½æ•°
 void OnMouse(int button, int action, int mods)
 {
     double x, y;
@@ -53,13 +54,13 @@ void OnMouse(int button, int action, int mods)
     cameraControl->onMouse(button,action,x,y);
 }
 
-//Êó±êÒÆ¶¯ÏìÓ¦º¯Êı
+//é¼ æ ‡ç§»åŠ¨å“åº”å‡½æ•°
 void OnCursor(double xpos, double ypos)
 {
     cameraControl->onCursor(xpos,ypos);
 }
 
-//Êó±ê¹öÂÖÏìÓ¦º¯Êı
+//é¼ æ ‡æ»šè½®å“åº”å‡½æ•°
 void OnScroll(double offset)
 {
     cameraControl->onScroll(offset);
@@ -80,7 +81,6 @@ void prepareShader(void)
     lightingShader->begin();
     lightControl->setShader(lightingShader);
     lightControl->addDirLight(0,glm::vec3(0.05f, 0.05f, 0.05f),glm::vec3(0.4f, 0.4f, 0.4f),glm::vec3(0.5f, 0.5f, 0.5f),glm::vec3(0.0f,-1.0f, 0.0f));
-    lightControl->addDotLight(0,glm::vec3(0.05f, 0.05f, 0.05f),glm::vec3(0.8f, 0.8f, 0.8f),glm::vec3(1.0f, 1.0f, 1.0f),glm::vec3(10.0f,10.0f,10.0f));
     lightControl->addSpotLight(0,glm::vec3(0.1f, 0.1f, 0.1f),glm::vec3(0.8f, 0.8f, 0.8f),glm::vec3(1.0f, 1.0f, 1.0f),glm::vec3(0.0f,0.0f,0.0f),glm::vec3(0.0f,-1.0f,0.0f));
     lightingShader->setVec3("material.specular",glm::vec3(0.99f, 0.99f, 0.99f));
     lightingShader->setFloat("material.shininess",512.0f);
@@ -98,12 +98,13 @@ const std::string boxTextureBasePathes[] = {
     "assets/textures/cubes/snow/",
     "assets/textures/cubes/sand/",
     "assets/textures/cubes/wood/",
+    "assets/textures/cubes/glowstone/",
     ""
 };
 
 void prepareTexture(void)
 {
-    // Ìì¿ÕºĞÎÆÀí
+    // å¤©ç©ºç›’çº¹ç†
     std::vector<std::string> skyboxPathes{
         "./assets/textures/skybox/right.jpg",
         "./assets/textures/skybox/left.jpg",
@@ -114,7 +115,7 @@ void prepareTexture(void)
     };
     skyboxTexture = new TextureCube(skyboxPathes,0);
 
-    // ¸÷ÖÖ·½¿é²ÄÖÊµÄtexture
+    // å„ç§æ–¹å—æè´¨çš„texture
     for(int i=1; i<(int)NULLCUBE; i++){
         if(boxTextureBasePathes[i] != ""){
             std::vector<std::string> boxTexturePathes{
@@ -131,7 +132,8 @@ void prepareTexture(void)
     }
 }
 
-/* ÉãÏñ»ú */ 
+/* æ‘„åƒæœº */ 
+const float elev_y = 60.0f;
 void prepareCamera(void)
 {
     camera = new PerspectiveCamera(60.0f,(float)Application::getInstance()->getWidth()/(float)Application::getInstance()->getHeight(),0.1f,100.0f);
@@ -143,9 +145,9 @@ void prepareCamera(void)
 
 void prepareState(void)
 {
-    glEnable(GL_DEPTH_TEST);  //¿ªÆôÉî¶È¼ì²â¹¦ÄÜ£¬Í¬Ê±ÔÚÇåÀí»­²¼µÄÊ±ºòĞèÒªÇåÀíÉî¶È»º´æ glClear(GL_DEPTH_BUFFER_BIT);
-    glDepthFunc(GL_LEQUAL);  //ÉèÖÃÕÚµ²·½Ê½£¬½ü´¦ÕÚµ²Ô¶´¦µÄ£¬ÆäÊµ»¹ÓĞºÜ¶àÖÖ
-    // glClearDepth(1.0f);  //ÉèÖÃÇåÀíÉî¶È»º´æÊı¾İµÄÊı¾İ
+    glEnable(GL_DEPTH_TEST);  //å¼€å¯æ·±åº¦æ£€æµ‹åŠŸèƒ½ï¼ŒåŒæ—¶åœ¨æ¸…ç†ç”»å¸ƒçš„æ—¶å€™éœ€è¦æ¸…ç†æ·±åº¦ç¼“å­˜ glClear(GL_DEPTH_BUFFER_BIT);
+    glDepthFunc(GL_LEQUAL);  //è®¾ç½®é®æŒ¡æ–¹å¼ï¼Œè¿‘å¤„é®æŒ¡è¿œå¤„çš„ï¼Œå…¶å®è¿˜æœ‰å¾ˆå¤šç§
+    // glClearDepth(1.0f);  //è®¾ç½®æ¸…ç†æ·±åº¦ç¼“å­˜æ•°æ®çš„æ•°æ®
 }
 
 void prepareWorldMap(void)
@@ -159,46 +161,46 @@ void prepareLightControl()
     lightControl = new LightControl;
 }
 
-// »æÖÆÊ®×Ö×¼ĞÄ
+// ç»˜åˆ¶åå­—å‡†å¿ƒ
 void drawCrosshair(int width, int height) {
-    // ¶¥µãÊı¾İ
+    // é¡¶ç‚¹æ•°æ®
     float vertices[] = {
-        // Î»ÖÃ          ÑÕÉ«
-        -0.014f,  0.00f,  1.0f, 1.0f, 1.0f, // ×ó¶Ëµã
-         0.01f,  0.00f,  1.0f, 1.0f, 1.0f, // ÓÒ¶Ëµã
-         0.00f, -0.012f,  1.0f, 1.0f, 1.0f, // ÉÏ¶Ëµã
-         0.00f, +0.01f,  1.0f, 1.0f, 1.0f, // ÏÂ¶Ëµã
+        // ä½ç½®          é¢œè‰²
+        -0.014f,  0.00f,  1.0f, 1.0f, 1.0f, // å·¦ç«¯ç‚¹
+         0.01f,  0.00f,  1.0f, 1.0f, 1.0f, // å³ç«¯ç‚¹
+         0.00f, -0.012f,  1.0f, 1.0f, 1.0f, // ä¸Šç«¯ç‚¹
+         0.00f, +0.01f,  1.0f, 1.0f, 1.0f, // ä¸‹ç«¯ç‚¹
     };
 
-    // ¶¥µãÊı×é¶ÔÏó
+    // é¡¶ç‚¹æ•°ç»„å¯¹è±¡
     GLuint VAO;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
-    // ¶¥µã»º³å¶ÔÏó
+    // é¡¶ç‚¹ç¼“å†²å¯¹è±¡
     GLuint VBO;
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    // Î»ÖÃÊôĞÔ
+    // ä½ç½®å±æ€§
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    // ÑÕÉ«ÊôĞÔ
+    // é¢œè‰²å±æ€§
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    // ±àÒë×ÅÉ«Æ÷
+    // ç¼–è¯‘ç€è‰²å™¨
     Shader centerShader("assets/shaders/13center.vs", "assets/shaders/13center.fs");
 
-    // Ê¹ÓÃ×ÅÉ«Æ÷³ÌĞò
+    // ä½¿ç”¨ç€è‰²å™¨ç¨‹åº
     centerShader.begin();
 
-    // »æÖÆÊ®×Ö×¼ĞÄ
+    // ç»˜åˆ¶åå­—å‡†å¿ƒ
     glDrawArrays(GL_LINES, 0, 4);
 
-    // ÇåÀí
+    // æ¸…ç†
     glDeleteBuffers(1, &VBO);
     glDeleteVertexArrays(1, &VAO);
 }
@@ -206,44 +208,45 @@ void drawCrosshair(int width, int height) {
 bool left_mouse_down = false;
 bool right_mouse_down = false;
 
-//äÖÈ¾
+//æ¸²æŸ“
 void render(void)
 {
-    //0£¬ÇåÀí»­²¼
-    GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));  //Èç¹ûÎÒÃÇÏëÒª¼ÓÈëÉî¶È¼ì²â£¬±ØĞëÍ¬Ê±ÇåÀíÉî¶È»º´æÊı¾İ
+    //0ï¼Œæ¸…ç†ç”»å¸ƒ
+    GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));  //å¦‚æœæˆ‘ä»¬æƒ³è¦åŠ å…¥æ·±åº¦æ£€æµ‹ï¼Œå¿…é¡»åŒæ—¶æ¸…ç†æ·±åº¦ç¼“å­˜æ•°æ®
 
-    //»æÖÆÌì¿ÕºĞ
-    //1£¬°ó¶¨µ±Ç°program
+    //ç»˜åˆ¶å¤©ç©ºç›’
+    //1ï¼Œç»‘å®šå½“å‰program
     skyboxShader->begin();
     skyboxTexture->bind();
-    skyboxShader->setMartrix4x4("viewMatrix",glm::mat4(glm::mat3(camera->getViewMatrix())));  //ÕâÖÖ¸Ğ¾õ¸üÎªÕæÊµÒ»Ğ©£¬Ìì¿ÕÖĞµÄÎïÌå¿ÉÒÔ¸úÎÒÒ»ÆğÒÆ¶¯£¬µ«ÊÇ»á³öÏÖÒÆ¶¯³öÌì¿ÕºĞµÄÇé¿ö
+    skyboxShader->setMartrix4x4("viewMatrix",glm::mat4(glm::mat3(camera->getViewMatrix())));  //è¿™ç§æ„Ÿè§‰æ›´ä¸ºçœŸå®ä¸€äº›ï¼Œå¤©ç©ºä¸­çš„ç‰©ä½“å¯ä»¥è·Ÿæˆ‘ä¸€èµ·ç§»åŠ¨ï¼Œä½†æ˜¯ä¼šå‡ºç°ç§»åŠ¨å‡ºå¤©ç©ºç›’çš„æƒ…å†µ
     skyboxShader->setMartrix4x4("projectionMatrix",camera->getProjectionMatrix());
 
-    //2£¬°ó¶¨µ±Ç°vao
+    //2ï¼Œç»‘å®šå½“å‰vao
     GL_CALL(glBindVertexArray(skyboxVao->getVao()));
 
-    //3£¬·¢³ö»æÖÆÖ¸Áî
+    //3ï¼Œå‘å‡ºç»˜åˆ¶æŒ‡ä»¤
     glDrawElements(GL_TRIANGLES,skyboxVao->getIndicesCount(),GL_UNSIGNED_INT,(void*)0);
 
-    // »æÖÆÆäËû·½¿é
+    // ç»˜åˆ¶å…¶ä»–æ–¹å—
     drawCrosshair(SCR_WIDTH, SCR_HEIGHT);
 
     // be sure to activate shader when setting uniforms/drawing objects
     lightingShader->begin();
     lightingShader->setVec3("spotLights[0].position", camera->getViewPos());
-    lightingShader->setVec3("spotLights[0].direction", camera->getFront());// directionÊÇ¹âÕÕÉä·½Ïò
+    lightingShader->setVec3("spotLights[0].direction", camera->getFront());// directionæ˜¯å…‰ç…§å°„æ–¹å‘
     lightingShader->setMartrix4x4("transform",transform);
     lightingShader->setMartrix4x4("viewMatrix",camera->getViewMatrix());
     lightingShader->setMartrix4x4("projectionMatrix",camera->getProjectionMatrix());
     lightingShader->setVec3("viewPos",camera->getViewPos());
+    lightingShader->setBool("is_lightcube",false);
     GL_CALL(glBindVertexArray(boxVao->getVao()));
 
 
     // render containers
     glBindVertexArray(boxVao->getVao());
 
-    //¼ÆËãµ±Ç°Î»ÖÃÇø¿é£¬´«¸øworldmap
-    //×¢ÒâÕâÀïyzÊÇ·´×ÅµÄ
+    //è®¡ç®—å½“å‰ä½ç½®åŒºå—ï¼Œä¼ ç»™worldmap
+    //æ³¨æ„è¿™é‡Œyzæ˜¯åç€çš„
     Pos nowpos;
     nowpos.x = camera->getViewPos().x;
     nowpos.y = camera->getViewPos().z;
@@ -251,35 +254,67 @@ void render(void)
     Pos blockpos = myWorldMap->calculateBlockPos(nowpos);
     myWorldMap->update(blockpos);
     CUBE tmp_cube = AIR;
+    
+    const double elev = std::atan(std::hypot(SCR_HEIGHT, SCR_WIDTH) / SCR_HEIGHT * std::tan(glm::radians(elev_y / 2)));
+
+    int lightcube_num=0;
 
     for (auto &[blockPos, block] : myWorldMap->wMap){
         if(blockPos.z != 0)
             continue;
+        
+        for (int k = 0; k < H; k++) {
+        for (int i = 0; i < W; i++) {
+        for (int j = 0; j < L; j++) {
+            if(block->cubearray[i][j][k] != AIR && block->cubearray[i][j][k] >= GLOWSTONE && block->cubearray[i][j][k] < NULLCUBE){
+                lightControl->addDotLight(lightcube_num,glm::vec3(0.2f, 0.2f, 0.2f),glm::vec3(0.5f, 0.5f, 0.5f),glm::vec3(1.0f, 1.0f, 1.0f),glm::vec3(i + (blockPos.x * W), k + (blockPos.z * H), j + (blockPos.y * L)));  
+                lightcube_num++;
+            }
+        }}}
+
         for (int k = 0; k < H; k++) {
         for (int i = 0; i < W; i++) {
         for (int j = 0; j < L; j++) {
 
             if(block->cubearray[i][j][k] != AIR && block->cubearray[i][j][k] < NULLCUBE){
-                bool z1 = ((j == 0     || block->cubearray[i][j - 1][k] == AIR) && camera->getViewPos().z <= blockPos.y * L + j);
-                bool z2 = ((j == L - 1 || block->cubearray[i][j + 1][k] == AIR) && camera->getViewPos().z >= blockPos.y * L + j +1);
-                bool x1 = ((i == 0     || block->cubearray[i - 1][j][k] == AIR) && camera->getViewPos().x <= blockPos.x * W + i);
-                bool x2 = ((i == W - 1 || block->cubearray[i + 1][j][k] == AIR) && camera->getViewPos().x >= blockPos.x * W + i +1);
-                bool y1 = ((k != 0     && block->cubearray[i][j][k - 1] == AIR) && camera->getViewPos().y <= blockPos.z * H + k); //ÕâÀïÉÔÎ¢¸ÄÁËÒ»ÏÂ£¬µØµ×ÊÇ¿ÉÒÔ²»äÖÈ¾µÄ
-                bool y2 = ((k == H - 1 || block->cubearray[i][j][k + 1] == AIR) && camera->getViewPos().y >= blockPos.z * H + k +1);
+                bool z1 = ((j == 0     || block->cubearray[i][j - 1][k] == 0) && camera->getViewPos().z <= blockPos.y * L + j);
+                bool z2 = ((j == L - 1 || block->cubearray[i][j + 1][k] == 0) && camera->getViewPos().z >= blockPos.y * L + j +1);
+                bool x1 = ((i == 0     || block->cubearray[i - 1][j][k] == 0) && camera->getViewPos().x <= blockPos.x * W + i);
+                bool x2 = ((i == W - 1 || block->cubearray[i + 1][j][k] == 0) && camera->getViewPos().x >= blockPos.x * W + i +1);
+                bool y1 = ((k == 0     || block->cubearray[i][j][k - 1] == 0) && camera->getViewPos().y <= blockPos.z * H + k);
+                bool y2 = ((k == H - 1 || block->cubearray[i][j][k + 1] == 0) && camera->getViewPos().y >= blockPos.z * H + k +1);
                 if(!(z1 || z2 || x1 || x2 || y1 || y2))
                     continue;
                 // model = glm::translate(model, glm::vec3(blockPos.x * W + i, blockPos.z * H + k, blockPos.y * L + j));
-                // glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(i + (blockPos.x * W), k + (blockPos.z * H), j + (blockPos.y * L)));
+                //å¦‚æœåœ¨è§†é‡ä¹‹å¤–å°±ä¸ç»˜åˆ¶
+                //å…·ä½“æ¥è¯´ï¼Œè¿‘è·ç¦»å…¨éƒ¨ç»˜åˆ¶ï¼Œè¿œè·ç¦»å†åˆ¤æ–­
+                const double BDIS = 10;
+                const double ELEVEPS = 0.1;
+                glm::vec3 cubePos(i + (blockPos.x * W) + 0.5, k + (blockPos.z * H) + 0.5, j + (blockPos.y * L) + 0.5);
+                if(glm::distance(camera->getViewPos(), cubePos) > BDIS)
+                {
+                    glm::vec3 t = cubePos - camera->getViewPos();
+                    if(std::acos(glm::dot(t, camera->getFront()) / glm::length(t) / glm::length(camera->getFront())) > elev + ELEVEPS)
+                    {
+                        continue;
+                    }
+                }
+                // model = glm::translate(glm::mat4(1.0f), glm::vec3(i + (blockPos.x * W), k + (blockPos.z * H), j + (blockPos.y * L)));
                 lightingShader->setMat4("transform", block->model[i][j][k]);
 
+                if(block->cubearray[i][j][k] < GLOWSTONE)
+                    lightingShader->setBool("is_lightcube",false);
+                else
+                    lightingShader->setBool("is_lightcube",true);      
+                    
                 boxTextures[block->cubearray[i][j][k]]->bind();
                 if(tmp_cube != block->cubearray[i][j][k]){
                     tmp_cube = block->cubearray[i][j][k];
                     lightingShader->setInt("material.cubeTexture",(int)(block->cubearray[i][j][k]));
                 }
                 // std::cout<< (int)(block->cubearray[i][j][k]) <<std::endl;
-                //Ã¿¸ö·½¿éµÄ6¸öÃæ²¢²»ĞèÒªÈ«²¿»æÖÆ
-                //Ô­ÀíÊÇÅĞ¶ÏÕâ¸öÃæÊÇ·ñ±»ÆäËû·½¿éÕÚµ²£¬Ã»ÕÚµ²µÄ»°ÔÙ»æÖÆ
+                //æ¯ä¸ªæ–¹å—çš„6ä¸ªé¢å¹¶ä¸éœ€è¦å…¨éƒ¨ç»˜åˆ¶
+                //åŸç†æ˜¯åˆ¤æ–­è¿™ä¸ªé¢æ˜¯å¦è¢«å…¶ä»–æ–¹å—é®æŒ¡ï¼Œæ²¡é®æŒ¡çš„è¯å†ç»˜åˆ¶
                 if (z1) // -z  
                     glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,(void*)(0*sizeof(unsigned int)));
                 if (z2)  // +z  
@@ -295,7 +330,13 @@ void render(void)
             }
             
         }}}
+        
+        for(int i=0;i<lightcube_num;i++)
+            lightControl->closeLight("dot",i);
     }
+
+
+    
     auto [pos1, pos2] = myWorldMap->getPointingCube(camera->getViewPos(), camera->getFront(), 10.0);
     // auto pos_block = myWorldMap->calculateBlockPos(pos1);
     // Pos pos_inblock = {pos1.x - pos_block.x * W, pos1.y - pos_block.y * L, pos1.z - pos_block.z * H};
@@ -312,7 +353,7 @@ void render(void)
         lightControl->closeLight("dir",1);
     }
 
-    // ´¦Àí·½¿é·ÅÖÃºÍÏû³ı
+    // å¤„ç†æ–¹å—æ”¾ç½®å’Œæ¶ˆé™¤
     if(cameraControl->getLeftMouseDown()){
         if(!left_mouse_down)
         {
@@ -331,8 +372,8 @@ void render(void)
             right_mouse_down = true;
             if(myWorldMap->getCubeAt(pos1) != AIR)
             {
-                myWorldMap->getCubeAt(pos2) = STONE;
-                //Ö±½Ó±©Á¦ÅĞ¶ÏÒ»ÏÂµ±Ç°ÊÇ·ñ·¢ÉúÅö×²£¨´©Ä££©£¬Èç¹ûÊÇµÄ»°¾Í²»·Å
+                myWorldMap->getCubeAt(pos2) = GLOWSTONE;
+                //ç›´æ¥æš´åŠ›åˆ¤æ–­ä¸€ä¸‹å½“å‰æ˜¯å¦å‘ç”Ÿç¢°æ’ï¼ˆç©¿æ¨¡ï¼‰ï¼Œå¦‚æœæ˜¯çš„è¯å°±ä¸æ”¾
                 if(myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
                     myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 
                     myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
@@ -354,21 +395,21 @@ void render(void)
 
 int main()
 {
-    //1£¬³õÊ¼»¯GLFWµÄ»ù±¾»·¾³
+    //1ï¼Œåˆå§‹åŒ–GLFWçš„åŸºæœ¬ç¯å¢ƒ
     if(!Application::getInstance() -> init(SCR_WIDTH,SCR_HEIGHT,"learn_opengl")){
         return -1;
     }
 
-    //2£¬´´½¨´°ÌåÑ­»·
+    //2ï¼Œåˆ›å»ºçª—ä½“å¾ªç¯
     Application::getInstance()->setResizeCallback(OnResize);
-    Application::getInstance()->setKeyBoardCallback(OnKey);  //ÉèÖÃÏìÓ¦º¯Êı
+    Application::getInstance()->setKeyBoardCallback(OnKey);  //è®¾ç½®å“åº”å‡½æ•°
     Application::getInstance()->setMouseCallback(OnMouse);
     Application::getInstance()->setCursorCallback(OnCursor);
-    Application::getInstance()->setScrollCallback(OnScroll);    //ÉèÖÃopenglÊÓ¿ÚÒÔ¼°ÇåÀíÑÕÉ«
+    Application::getInstance()->setScrollCallback(OnScroll);    //è®¾ç½®openglè§†å£ä»¥åŠæ¸…ç†é¢œè‰²
 
     // tell GLFW to capture our mouse
     glfwSetInputMode(Application::getInstance()->getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glViewport(0,0,800,600);  //ÉèÖÃÊÓ¿Ú£¬Ç°Á½¸ö²ÎÊıÎª´Ó×óÏÂ½Ç¿ªÊ¼¼ÆÊıµÄºá×İ×ø±ê£¬ºóÁ½¸ö²ÎÊıÎªwidthºÍheight
+    glViewport(0,0,SCR_WIDTH,SCR_HEIGHT);  //è®¾ç½®è§†å£ï¼Œå‰ä¸¤ä¸ªå‚æ•°ä¸ºä»å·¦ä¸‹è§’å¼€å§‹è®¡æ•°çš„æ¨ªçºµåæ ‡ï¼Œåä¸¤ä¸ªå‚æ•°ä¸ºwidthå’Œheight
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f); //r,g,b,alpha
 
     prepareLightControl();
@@ -379,36 +420,36 @@ int main()
     prepareState();
     prepareWorldMap();
 
-     // Ö¡ÂÊÍ³¼Æ±äÁ¿
+     // å¸§ç‡ç»Ÿè®¡å˜é‡
     double previousTime = glfwGetTime();
     int frameCount = 0;
 
-    //3£¬Ö´ĞĞ´°ÌåÑ­»·
+    //3ï¼Œæ‰§è¡Œçª—ä½“å¾ªç¯
     while(Application::getInstance() -> update()){
 
-        // »ñÈ¡µ±Ç°Ê±¼ä
+        // è·å–å½“å‰æ—¶é—´
         double currentTime = glfwGetTime();
         frameCount++;
-        // Ã¿Ãë¸üĞÂÒ»´ÎÖ¡ÂÊ
+        // æ¯ç§’æ›´æ–°ä¸€æ¬¡å¸§ç‡
         if (currentTime - previousTime >= 1.0) {
-            FPS = frameCount / (currentTime - previousTime);
+            double fps = frameCount / (currentTime - previousTime);
             // std::cout << "FPS: " << fps << std::endl;
-            // ¸üĞÂ´°¿Ú±êÌâ
-            std::string title = "OpenGL FPS: " + std::to_string(FPS);
+            // æ›´æ–°çª—å£æ ‡é¢˜
+            std::string title = "OpenGL FPS: " + std::to_string(fps);
             glfwSetWindowTitle(Application::getInstance()->getWindow(), title.c_str());
-            // ÖØÖÃ¼ÆÊıÆ÷
+            // é‡ç½®è®¡æ•°å™¨
             previousTime = currentTime;
             frameCount = 0;
         }
 
         cameraControl->update();
-        //äÖÈ¾²Ù×÷
+        //æ¸²æŸ“æ“ä½œ
         render();
         if(escape)
             break;
     }
 
-    //4£¬ÍË³ö³ÌĞòÇ°×öÏà¹ØÇåÀí
+    //4ï¼Œé€€å‡ºç¨‹åºå‰åšç›¸å…³æ¸…ç†
     delete myWorldMap;
     Application::getInstance() -> destory();
 

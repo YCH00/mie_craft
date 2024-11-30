@@ -3,7 +3,7 @@
 #include"core.h"
 #include "worldMap.h"
 
-//#define CREATER_MOD
+// #define CREATER_MOD
 
 const double PLAYER_HEIGHT = 1.9;
 const double PLAYER_RADIU = 0.4;
@@ -70,7 +70,7 @@ protected:
     Camera* mCamera = nullptr;  //控制的摄像机
 
     bool onGround = 0;
-    const float g = 19.6; //重力加速度
+    const float g = 22; //重力加速度
     float ySpeed = 0.0f;//玩家y方向的速度
     const float ySpeedmax = 25;
 };

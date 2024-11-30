@@ -12,8 +12,8 @@ void LightControl::addDotLight(const int& seq, const glm::vec3& ambient, const g
         std::cout<< "seq \""<< seq << "\" out of range;"<< std::endl;
         return;
     }
-    if(mDotLight[seq])
-        std::cout<< "Warning: this light is existed" << std::endl;
+    // if(mDotLight[seq])
+    //     std::cout<< "Warning: this light is existed" << std::endl;
     mDotLight[seq] = true;
     std::string baseName = std::string("dotLights[") + std::to_string(seq) + std::string("].");
     mShader->begin();
@@ -33,8 +33,8 @@ void LightControl::addSpotLight(const int& seq, const glm::vec3& ambient, const 
         std::cout<< "seq \""<< seq << "\" out of range;"<< std::endl;
         return;
     }
-    if(mSpotLight[seq])
-        std::cout<< "Warning: this light is existed and it will be updated;" << std::endl;
+    // if(mSpotLight[seq])
+    //     std::cout<< "Warning: this light is existed and it will be updated;" << std::endl;
     mSpotLight[seq] = true;
     std::string baseName = std::string("spotLights[") + std::to_string(seq) + std::string("].");
     mShader->begin();
@@ -57,8 +57,8 @@ void LightControl::addDirLight(const int& seq, const glm::vec3& ambient, const g
         std::cout<< "seq \""<< seq << "\" out of range;"<< std::endl;
         return;
     }
-    if(mDirLight[seq])
-        std::cout<< "Warning: this light is existed" << std::endl;
+    // if(mDirLight[seq])
+    //     std::cout<< "Warning: this light is existed" << std::endl;
     mDirLight[seq] = true;
     std::string baseName = std::string("dirLights[") + std::to_string(seq) + std::string("].");
     mShader->begin();

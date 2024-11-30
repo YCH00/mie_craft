@@ -1,20 +1,20 @@
 #version 330 core
 layout(location = 0) in vec3 aPos;
 layout(location = 2) in vec3 aUv;
-layout(location = 3) in vec3 aNormal;  // ·¨ÏßĞÅÏ¢
+layout(location = 3) in vec3 aNormal;  // æ³•çº¿ä¿¡æ¯
 
 uniform mat4 transform;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
 out vec3 FragPos;
-out vec3 Normal;  // ·¨ÏßĞÅÏ¢
+out vec3 Normal;  // æ³•çº¿ä¿¡æ¯
 out vec3 uv;
 void main()
 {
-    FragPos = vec3(transform * vec4(aPos, 1.0));  // ²åÖµÖ®ºó±äÎªÄ³Ò»¸öÏñËØµÄÊÀ½ç×ø±ê
-     //¸ù¾İÎïÌåÒÆ¶¯¸Ä±ä¶¥µãµÄ·¨ÏßĞÅÏ¢
-     //Êµ¼ÊÇé¿öÏÂ£¬¾ØÕóÇóÄæµÄ´ú¼ÛºÜ¸ß£¬
+    FragPos = vec3(transform * vec4(aPos, 1.0));  // æ’å€¼ä¹‹åå˜ä¸ºæŸä¸€ä¸ªåƒç´ çš„ä¸–ç•Œåæ ‡
+     //æ ¹æ®ç‰©ä½“ç§»åŠ¨æ”¹å˜é¡¶ç‚¹çš„æ³•çº¿ä¿¡æ¯
+     //å®é™…æƒ…å†µä¸‹ï¼ŒçŸ©é˜µæ±‚é€†çš„ä»£ä»·å¾ˆé«˜ï¼Œ
     Normal = mat3(transpose(inverse(transform))) * aNormal;  
     gl_Position = projectionMatrix * viewMatrix * transform * vec4(aPos, 1.0);
     uv = aUv;

@@ -1,7 +1,7 @@
 #pragma once
 #include"mine/core.h"
 #include"mine/shader.h"
-#define MAX_DOT_LIGHTS 4
+#define MAX_DOT_LIGHTS 16
 #define MAX_DIR_LIGHTS 2
 #define MAX_SPOT_LIGHTS 1
 

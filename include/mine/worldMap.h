@@ -5,8 +5,8 @@
 
 #define W 16
 #define L 16
-#define H 64
-#define R 6 //¼ÓÔØ°ë¾¶ÎªRµÄ¸öÊıµÄÇø¿é
+#define H 32
+#define R 6 //åŠ è½½åŠå¾„ä¸ºRçš„ä¸ªæ•°çš„åŒºå—
 
 enum CUBE {
 	AIR,
@@ -16,6 +16,7 @@ enum CUBE {
     SNOW,
     SAND,
     WOOD,
+	GLOWSTONE,
 	NULLCUBE
 };
 
@@ -47,7 +48,7 @@ public:
 	Block(){}
 	Block(const Pos& pos) {
 		auto [x, y, z] = pos;
-		//µØÍ¼³õÊ¼»¯
+		//åœ°å›¾åˆå§‹åŒ–
 		const siv::PerlinNoise::seed_type seed = 123456u;
 
 		const siv::PerlinNoise perlin{ seed };
@@ -70,7 +71,7 @@ public:
 			}
 		}
 	}
-	//ÎÒÃÇÊ¹ÓÃÒ»¸ö128*128*10µÄÊı×é¹ÜÀíµØÍ¼
+	//æˆ‘ä»¬ä½¿ç”¨ä¸€ä¸ª128*128*10çš„æ•°ç»„ç®¡ç†åœ°å›¾
 
 
 	CUBE cubearray[W][L][H] = {};
@@ -86,7 +87,7 @@ public:
 	void eraseBlock(const Pos& blockPos);
 	void addBlock(const Pos& blockPos);
 	void update(const Pos& nowblockpos);
-	Pos calculateBlockPos(const Pos& a); //¼ÆËãµ±Ç°Î»ÖÃÊÇÄÄ¸öÇø¿é
+	Pos calculateBlockPos(const Pos& a); //è®¡ç®—å½“å‰ä½ç½®æ˜¯å“ªä¸ªåŒºå—
 
 	CUBE& getCubeAt(Pos p);
 	std::pair<Pos, Pos> getPointingCube(glm::vec3 position, glm::vec3 front, double radius);
