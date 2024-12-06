@@ -258,11 +258,7 @@ void render(void)
     const double elev = std::atan(std::hypot(SCR_HEIGHT, SCR_WIDTH) / SCR_HEIGHT * std::tan(glm::radians(elev_y / 2)));
 
     int lightcube_num=0;
-
     for (auto &[blockPos, block] : myWorldMap->wMap){
-        if(blockPos.z != 0)
-            continue;
-        
         for (int k = 0; k < H; k++) {
         for (int i = 0; i < W; i++) {
         for (int j = 0; j < L; j++) {
@@ -271,7 +267,11 @@ void render(void)
                 lightcube_num++;
             }
         }}}
+    }
 
+    for (auto &[blockPos, block] : myWorldMap->wMap){
+        if(blockPos.z != 0)
+            continue;
         for (int k = 0; k < H; k++) {
         for (int i = 0; i < W; i++) {
         for (int j = 0; j < L; j++) {
@@ -331,9 +331,9 @@ void render(void)
             
         }}}
         
-        for(int i=0;i<lightcube_num;i++)
-            lightControl->closeLight("dot",i);
     }
+    for(int i=0;i<lightcube_num;i++)
+        lightControl->closeLight("dot",i);
 
 
     
