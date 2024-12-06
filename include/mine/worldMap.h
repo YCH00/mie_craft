@@ -61,8 +61,14 @@ public:
 				// std::cerr << "noise=" << noise << std::endl;
 				// const double noise = 0.4;
 
-				for (int k = 0; H * z + k <= int(noise*5); k++) {
+				for (int k = 0; k <= int(noise*5); k++) {
 					cubearray[i][j][k] = STONE;
+				}
+				for (int k = int(noise * 5) + 1; k <= int(noise*5) + 3; k++){
+					cubearray[i][j][k] = DIRT;
+				}
+				for (int k = int(noise * 5) + 4; k <= int(noise*5) + 4; k++){
+					cubearray[i][j][k] = GRASS;
 				}
 				for (int k = 0; k < H; k++)
 				{
