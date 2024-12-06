@@ -372,7 +372,7 @@ void render(void)
             right_mouse_down = true;
             if(myWorldMap->getCubeAt(pos1) != AIR)
             {
-                myWorldMap->getCubeAt(pos2) = GLOWSTONE;
+                myWorldMap->getCubeAt(pos2) = cameraControl->getOnhandCube();
                 //直接暴力判断一下当前是否发生碰撞（穿模），如果是的话就不放
                 if(myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, -PLAYER_RADIU / 2))) != AIR || 
                     myWorldMap->getCubeAt(transWorldposToMappos(camera->getViewPos() + glm::vec3(-PLAYER_RADIU / 2, PLAYER_HEIGHT - PLAYER_EYE_HEIGHT, PLAYER_RADIU / 2))) != AIR || 

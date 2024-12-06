@@ -59,6 +59,7 @@ public:
     bool getLeftMouseDown() const { return mLeftMouseDown; }
     bool getRightMouseDown() const { return mRightMouseDown; }
     bool getMiddleMouseDown() const { return mMiddleMouseDown; }
+    CUBE getOnhandCube() const { return onhand; }
 
 protected:
     bool mLeftMouseDown = false;
@@ -68,6 +69,7 @@ protected:
     std::map<int,bool> mKeyMap;  //记录每一个键盘按键是否被按下
     float mSensitivity = 0.1f;  //灵敏度，鼠标移动距离=>旋转角 的比值
     Camera* mCamera = nullptr;  //控制的摄像机
+    CUBE onhand = STONE; //玩家手中的方块
 
     bool onGround = 0;
     const float g = 22; //重力加速度
