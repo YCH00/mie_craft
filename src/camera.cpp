@@ -6,6 +6,15 @@ extern WorldMap *myWorldMap;
 extern bool escape;
 extern double FPS;
 
+const CUBE cubes[] = {
+    GRASS,
+    STONE,
+    DIRT,
+    SNOW,
+    SAND,
+    WOOD,
+    GLOWSTONE};
+
 Camera::Camera()  //后序可以加入初始设置参数
 {
 
@@ -208,6 +217,15 @@ void GameCameraControl::update()
     }
     if(mKeyMap[GLFW_KEY_ESCAPE]){
         escape = true;
+    }
+
+    for (int i = 0; i < sizeof(cubes) / sizeof(cubes[0]); i++)//需要保证cubes不超过9，不然就会是1-9以外的按键
+    {
+        if(mKeyMap[GLFW_KEY_1 + i])
+        {
+            onhand = cubes[i];
+            break;
+        }
     }
 
 #ifndef CREATER_MOD
